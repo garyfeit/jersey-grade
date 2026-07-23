@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JerseyGrade — Which jersey should you buy?</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --navy: #0B1B32;
+    --red: #C8262A;
+    --gold: #C9A45C;
+    --cream: #F2EFE6;
+    --slate: #5A6472;
+    --light: #E8E5DC;
+    --white: #FFFFFF;
+    --card-bg: #FFFFFF;
+    --page-bg: #F5F3EE;
+    --border: #D8D5CC;
+    --text-primary: #0B1B32;
+    --text-secondary: #5A6472;
+    --text-tertiary: #8A95A3;
+
+    --cat-performance: #378ADD;
+    --cat-tenure: #0F6E56;
+    --cat-durability: #EF9F27;
+    --cat-citizenship: #7F77DD;
+    --cat-popularity: #D85A30;
+    --cat-wildcard: #D4537E;
+
+    --font-display: 'Barlow Condensed', sans-serif;
+    --font-body: 'Inter', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+
+  body {
+    font-family: var(--font-body);
+    background: var(--page-bg);
+    color: var(--text-primary);
+    min-height: 100vh;
+  }
+
+  /* ── Header ── */
+  header {
+    background: var(--navy);
+    padding: 0 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 56px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .logo {
+    font-family: var(--font-display);
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--cream);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .logo span {
+    color: var(--gold);
+  }
+
+  .beta-tag {
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    color: var(--gold);
+    border: 1px solid var(--gold);
+    padding: 2px 5px;
+    border-radius: 3px;
+    margin-left: 8px;
+    vertical-align: middle;
+    letter-spacing: 0.08em;
+  }
+
+  /* ── Hero ── */
+  .hero {
+    background: var(--navy);
+    padding: 2rem 1.5rem 2.5rem;
+    text-align: center;
+    border-bottom: 3px solid var(--gold);
+  }
+
+  .hero h1 {
+    font-family: var(--font-display);
+    font-size: clamp(1.8rem, 5vw, 2.8rem);
+    font-weight: 700;
+    color: var(--cream);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    line-height: 1.1;
+    margin-bottom: 0.5rem;
+  }
+
+  .hero h1 em {
+    color: var(--gold);
+    font-style: normal;
+  }
+
+  .hero p {
+    font-size: 0.9rem;
+    color: #8A95A3;
+    max-width: 480px;
+    margin: 0 auto;
+    line-height: 1.5;
+  }
+
+  /* ── Team switcher ── */
+  .team-switcher {
+    background: var(--navy);
+    padding: 0 1.5rem 1.5rem;
+    display: flex;
+    justify-content: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  .team-btn {
+    font-family: var(--font-display);
+    font-size: 0.95rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 0.5rem 1.25rem;
+    border-radius: 4px;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: all 0.15s;
+    background: transparent;
+    color: var(--slate);
+    border-color: #2A3A52;
+  }
+
+  .team-btn.active {
+    background: var(--cream);
+    color: var(--navy);
+    border-color: var(--cream);
+  }
+
+  .team-btn:hover:not(.active) {
+    border-color: var(--cream);
+    color: var(--cream);
+  }
+
+  /* ── Layout ── */
+  .app {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 1.5rem 1rem 3rem;
+  }
+
+  .controls-card {
+    background: var(--card-bg);
+    border-radius: 10px;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid var(--border);
+  }
+
+  .controls-label {
+    font-family: var(--font-display);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-tertiary);
+    margin-bottom: 1rem;
+    display: block;
+  }
+
+  .sliders-grid {
+    display: grid;
+    gap: 0.625rem;
+  }
+
+  .slider-row {
+    display: grid;
+    grid-template-columns: 120px 1fr 28px;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .slider-label {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+  }
+
+  .slider-label .cat-dot {
+    display: inline-block;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    margin-right: 5px;
+    vertical-align: middle;
+  }
+
+  input[type="range"] {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--light);
+    outline: none;
+    cursor: pointer;
+  }
+
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--navy);
+    cursor: pointer;
+    border: 2px solid var(--white);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  }
+
+  .slider-val {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-align: right;
+    color: var(--text-primary);
+  }
+
+  /* ── Player cards ── */
+  #cards {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .player-card {
+    background: var(--card-bg);
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    padding: 1.25rem;
+    transition: border-color 0.2s;
+  }
+
+  .player-card.top-match {
+    border: 2px solid var(--gold);
+    box-shadow: 0 2px 12px rgba(201,164,92,0.15);
+  }
+
+  .card-header {
+    display: grid;
+    grid-template-columns: 60px 1fr auto;
+    gap: 0.875rem;
+    align-items: center;
+    margin-bottom: 1rem;
+  }
+
+  .jersey-wrap {
+    width: 60px;
+    height: 66px;
+    flex-shrink: 0;
+  }
+
+  .player-name {
+    font-family: var(--font-display);
+    font-size: 1.1rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    line-height: 1.1;
+  }
+
+  .player-meta {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    margin-top: 2px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .user-suggested {
+    font-family: var(--font-body);
+    font-size: 0.65rem;
+    color: var(--text-tertiary);
+    background: var(--light);
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-weight: 500;
+    text-transform: none;
+    letter-spacing: 0;
+  }
+
+  .score-block {
+    text-align: right;
+  }
+
+  .score-rank {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .score-top-match {
+    color: var(--gold);
+    font-weight: 600;
+  }
+
+  .score-number {
+    font-family: var(--font-display);
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1;
+  }
+
+  /* ── Bars ── */
+  .bars {
+    margin-bottom: 0.75rem;
+  }
+
+  .bar-row {
+    display: grid;
+    grid-template-columns: 96px 1fr 28px;
+    align-items: center;
+    gap: 0.625rem;
+    margin-bottom: 3px;
+  }
+
+  .bar-label {
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+  }
+
+  .bar-track {
+    height: 5px;
+    background: var(--light);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.3s ease;
+  }
+
+  .bar-val {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    text-align: right;
+    color: var(--text-primary);
+  }
+
+  /* ── Controls section ── */
+  .card-controls {
+    margin-bottom: 0.875rem;
+  }
+
+  .wc-row {
+    display: grid;
+    grid-template-columns: 14px 96px 1fr 28px;
+    align-items: center;
+    gap: 0.625rem;
+    margin-bottom: 0.375rem;
+  }
+
+  .wc-label {
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+  }
+
+  .wc-val {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    text-align: right;
+    color: var(--text-tertiary);
+  }
+
+  .durability-toggle {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding-left: 20px;
+  }
+
+  input[type="checkbox"] {
+    width: 13px;
+    height: 13px;
+    cursor: pointer;
+    accent-color: var(--navy);
+  }
+
+  /* ── Note ── */
+  .card-divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 0.875rem 0 0.75rem;
+  }
+
+  .note-overview {
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+    line-height: 1.55;
+    margin-bottom: 0.375rem;
+  }
+
+  .note-recent {
+    font-size: 0.75rem;
+    color: var(--text-tertiary);
+    line-height: 1.5;
+    font-style: italic;
+  }
+
+  /* ── Footer ── */
+  footer {
+    text-align: center;
+    padding: 2rem 1rem;
+    font-size: 0.72rem;
+    color: var(--text-tertiary);
+    line-height: 1.6;
+    border-top: 1px solid var(--border);
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  footer a { color: var(--text-tertiary); text-decoration: underline; }
+
+  /* ── Disclaimer banner ── */
+  .disclaimer {
+    background: #FFFBF0;
+    border: 1px solid #E8D9A0;
+    border-radius: 6px;
+    padding: 0.75rem 1rem;
+    margin-bottom: 1.5rem;
+    font-size: 0.75rem;
+    color: #7A6830;
+    line-height: 1.5;
+  }
+
+  @media (max-width: 480px) {
+    .slider-row { grid-template-columns: 100px 1fr 24px; }
+    .bar-row { grid-template-columns: 80px 1fr 24px; }
+    .wc-row { grid-template-columns: 14px 80px 1fr 24px; }
+    .card-header { grid-template-columns: 52px 1fr auto; }
+    .jersey-wrap { width: 52px; height: 57px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Jersey<span>Grade</span><span class="beta-tag">BETA</span></div>
+  <div style="font-size: 0.72rem; color: #5A6472;">Prototype · July 2026</div>
+</header>
+
+<div class="hero">
+  <h1>Which jersey should<br>you <em>actually</em> buy?</h1>
+  <p>Grade players on what matters — performance, tenure, durability, citizenship, and popularity — then weight the factors that matter most to you.</p>
+</div>
+
+<div class="team-switcher">
+  <button class="team-btn active" data-team="giants">NY Giants</button>
+  <button class="team-btn" data-team="niners">San Francisco 49ers</button>
+</div>
+
+<div class="app">
+
+  <div class="disclaimer">
+    <strong>Prototype — feedback welcome.</strong> Scores are formula-generated using public data as of July 2026. Player notes are AI-generated. Roster and scores will update regularly. Something seem off? We want to know.
+  </div>
+
+  <div class="controls-card">
+    <span class="controls-label">How much does each factor matter to you?</span>
+    <div class="sliders-grid" id="sliders"></div>
+  </div>
+
+  <div id="cards"></div>
+
+</div>
+
+<footer>
+  JerseyGrade is an independent tool — not affiliated with the NFL, any team, or any jersey manufacturer.<br>
+  Scores reflect public data and are updated regularly. Player notes are AI-generated and reviewed for accuracy.<br>
+  <br>
+  Prototype built July 2026. Feedback? Text or email the creator.<br>
+  Affiliate links to purchase jerseys coming soon.
+</footer>
+
+<script>
+// ── Data ──────────────────────────────────────────────────────────────────────
+
+const TEAMS = {
+  giants: {
+    name: 'NY Giants',
+    color1: '#0B1B32',
+    color2: '#C8262A',
+    accent: '#F2EFE6',
+    players: [
+      { name: "Jaxson Dart", pos: "QB", num: 6,
+        quality:7.5, tenure:9.8, injury:5.0, conduct:8.5, popularity:8.0,
+        overview:"A dynamic rookie season established Dart as the Giants' likely long-term starter at quarterback, though his aggressive scrambling style has drawn repeated concussion evaluations and prompted the team to push him to protect himself more.",
+        recent:"Giants coaches have indicated some hesitation about carrying only two quarterbacks given his frequent trips to the medical tent last year, though he says he intends to be smarter about taking off as a runner this season." },
+      { name: "Malik Nabers", pos: "WR", num: 1,
+        quality:9.0, tenure:9.0, injury:3.5, conduct:8.5, popularity:8.5,
+        overview:"A Pro Bowl rookie season made Nabers the clear face of the receiving corps and a long-term franchise piece, though his explosive style carries real injury risk.",
+        recent:"His ACL recovery has become harder to predict after a second cleanup procedure for scar tissue buildup, and a Week 1 return against Dallas isn't guaranteed." },
+      { name: "Odell Beckham Jr.", pos: "WR", num: 3,
+        quality:6.5, tenure:4.0, injury:3.0, conduct:6.5, popularity:9.0,
+        overview:"One of the most electrifying Giants of all time returns to the team that made him a star — a pure nostalgia and upside play, though his injury history and age make this a high-risk jersey purchase.",
+        recent:"Signed June 1 after missing the entire 2025 season; served a 6-game PED suspension and had a knee surgery consultation with Harbaugh, who called him one of his 'favorite people in the world.'" },
+      { name: "Brian Burns", pos: "EDGE", num: 0,
+        quality:8.8, tenure:8.8, injury:8.5, conduct:8.5, popularity:6.5,
+        overview:"An elite, durable pass rusher and arguably the Giants' best current player — a safe, fan-favorite pick with a contract that runs several more years.",
+        recent:"No notable updates this offseason; entering camp as the unquestioned starter and leader of a deep edge rusher room." },
+      { name: "Abdul Carter", pos: "EDGE", num: 55,
+        quality:7.2, tenure:9.0, injury:7.0, conduct:7.5, popularity:7.0,
+        overview:"The No. 3 overall pick in 2025, Carter is a high-upside young pass rusher the Giants are building their defense around, though his rookie year included some maturity flags around missed meetings.",
+        recent:"The Giants enter camp with four first-round picks at edge rusher, and how John Harbaugh's staff deploys that depth in their new defensive scheme is one of the more interesting storylines to watch." },
+      { name: "Kayvon Thibodeaux", pos: "EDGE", num: 5,
+        quality:5.5, tenure:3.5, injury:4.5, conduct:8.0, popularity:6.0,
+        overview:"A former No. 5 overall pick who flashed double-digit sacks in 2023 but has battled injuries and declining production since, now entering a make-or-break final contract year as the third edge rusher on his own team.",
+        recent:"The Giants shopped him in trade discussions this offseason before pulling back; with no extension talks and a $14.75M cap hit, 2026 will determine whether he has a future in New York or elsewhere." },
+      { name: "Arvell Reese", pos: "LB", num: 52,
+        quality:7.5, tenure:9.5, injury:7.5, conduct:8.5, popularity:5.5,
+        overview:"The Giants' first-round pick at No. 5 overall, Reese is an athletic, versatile defender the team's GM called the highest-graded non-quarterback on their board — an early opportunity to buy in before he's a household name.",
+        recent:"Expected to play a flexible role rushing the passer in certain packages while developing as an off-ball linebacker behind a deep group of established edge rushers." },
+      { name: "Tremaine Edmunds", pos: "LB", num: 49,
+        quality:6.0, tenure:7.5, injury:6.5, conduct:8.0, popularity:4.5,
+        overview:"A former 2× Pro Bowler signed as the quarterback of the Giants' new defense, Edmunds brings veteran leadership and strong run-stopping credentials, though his coverage play and injury history leave questions.",
+        recent:"Signed a 3-year/$36M deal with the Giants after the Bears released him; multiple sources expect him to start alongside Micah McFadden in John Harbaugh's new defense." },
+      { name: "Andrew Thomas", pos: "LT", num: 78,
+        quality:8.5, tenure:9.0, injury:6.0, conduct:9.0, popularity:5.0,
+        overview:"A perennial top-5 left tackle when healthy, recently extended through 2029 with a record guarantee for the position — durability, not talent or character, is the only real question mark.",
+        recent:"Just had his contract restructured to free up cap space (a retention signal, not a risk one), and was recently named an NFLPA Community MVP for charity work with local kids." },
+      { name: "Francis Mauigoa", pos: "OG", num: 77,
+        quality:7.0, tenure:9.5, injury:6.0, conduct:8.5, popularity:4.0,
+        overview:"The No. 10 overall pick in 2026, Mauigoa brings rare size and athleticism to what is projected to be an immediate starting role at right guard — the Giants' highest draft investment in an offensive lineman in years.",
+        recent:"Moving from right tackle in college to guard in the NFL; an asymptomatic herniated disc flagged at the combine is being monitored but not expected to require surgery." },
+      { name: "Jermaine Eluemunor", pos: "RT", num: 72,
+        quality:6.0, tenure:6.0, injury:6.5, conduct:8.0, popularity:3.5,
+        overview:"A journeyman offensive tackle who found a home with the Giants and had the best year of his career in 2025, Eluemunor is a fan-appreciated veteran whose re-signing signals short-term stability at right tackle.",
+        recent:"Re-signed on a one-year deal; currently holds the RT job, with rookie Mauigoa eventually expected to push the line configuration." },
+      { name: "Isaiah Likely", pos: "TE", num: 9,
+        quality:7.0, tenure:8.5, injury:5.0, conduct:8.5, popularity:5.5,
+        overview:"A versatile, athletic tight end who quietly became one of the league's better receiving options in Baltimore, Likely arrives in New York as the unquestioned TE1 with a chance to thrive in a more prominent role.",
+        recent:"Signed a 3-year/$40M deal; his 2025 was hampered by a preseason foot surgery, but he's expected to be fully healthy and a featured target for Jaxson Dart in 2026." },
+      { name: "Cam Skattebo", pos: "RB", num: 28,
+        quality:6.5, tenure:7.0, injury:5.5, conduct:8.0, popularity:8.0,
+        overview:"A breakout 2025 rookie who emerged as the team's most exciting offensive player before a gruesome ankle fracture ended his season in Week 8 — the Giants' most compelling 'buy in early' pick for fans who saw what he can do.",
+        recent:"Returned to full-team drills at minicamp and is projected healthy for Week 1; the Giants brought in Tyrone Tracy Jr. and Patrick Ricard to support the backfield during his recovery." },
+      { name: "Tyrone Tracy Jr.", pos: "RB", num: 29,
+        quality:6.5, tenure:6.5, injury:7.0, conduct:8.5, popularity:4.5,
+        overview:"A smooth, zone-running back who stepped up as the team's lead rusher in 2025 after Skattebo's injury, Tracy is a reliable complementary piece whose role will likely shrink but remains valuable in this offense.",
+        recent:"Currently penciled in as RB1 while Skattebo completes his recovery; role expected to evolve once Skattebo returns to full health." },
+      { name: "D.J. Reader", pos: "DT", num: 91,
+        quality:6.5, tenure:5.5, injury:5.5, conduct:8.5, popularity:2.5,
+        overview:"A veteran run-stuffing defensive tackle signed to anchor the interior after Dexter Lawrence's trade to Cincinnati, Reader brings experience and reliability to a position group that needed a proven presence.",
+        recent:"No notable updates this offseason; expected to start and provide leadership to a rebuilt defensive line." },
+      { name: "Jameis Winston", pos: "QB", num: 2, userSuggested: true,
+        quality:5.5, tenure:5.0, injury:6.5, conduct:7.0, popularity:6.5,
+        overview:"A former No. 1 overall pick and beloved locker room presence, Winston has carved out a unique role as the Giants' backup QB and a genuine fan favorite — one of those rare backups whose jersey you'll actually see in the stands.",
+        recent:"Re-signed as Dart's backup for 2026; his veteran presence and relationship with the young QB has drawn praise from the coaching staff heading into camp." },
+    ]
+  },
+  niners: {
+    name: 'San Francisco 49ers',
+    color1: '#AA0000',
+    color2: '#B3995D',
+    accent: '#FFFFFF',
+    players: [
+      { name: "Brock Purdy", pos: "QB", num: 13,
+        quality:7.5, tenure:9.5, injury:6.0, conduct:8.5, popularity:8.0,
+        overview:"The ultimate underdog story — a former Mr. Irrelevant who became a franchise QB and signed a massive extension — Purdy is the unquestioned face of the 49ers and the safest long-term jersey purchase on the roster.",
+        recent:"Missed 8 games in 2025 with a toe injury but returned to post elite efficiency; Kyle Shanahan has said he expects Purdy to be fully healthy heading into training camp." },
+      { name: "Christian McCaffrey", pos: "RB", num: 23,
+        quality:9.5, tenure:7.0, injury:3.0, conduct:8.5, popularity:10.0,
+        overview:"The best running back in the NFL when healthy, McCaffrey is a national superstar and perennial jersey-sales leader — but his recurring soft-tissue injury history and age (30) make this a high-risk, high-reward purchase.",
+        recent:"The 49ers are meticulously managing his workload this offseason after he recorded a career-high 413 touches in 2025; he is expected to be available for Week 1." },
+      { name: "George Kittle", pos: "TE", num: 85,
+        quality:8.5, tenure:7.0, injury:4.0, conduct:8.5, popularity:9.5,
+        overview:"One of the most beloved players in the NFL and an all-time great tight end, Kittle is the emotional heart of the 49ers — though his injury history and postseason Achilles tear make availability the core concern.",
+        recent:"The 49ers are reportedly excited about Kittle's recovery progress from the Achilles tear he suffered in January, though Week 1 availability remains uncertain." },
+      { name: "Nick Bosa", pos: "EDGE", num: 97,
+        quality:9.0, tenure:8.0, injury:3.5, conduct:7.5, popularity:8.5,
+        overview:"A Defensive Player of the Year and franchise cornerstone, Bosa is among the best pass rushers in the NFL — but has now missed significant time in multiple seasons, making durability the central jersey-purchase question.",
+        recent:"Fully healthy entering 2026 after playing just 3 games in 2025; the 49ers are counting on him to anchor a defense that recorded a league-low 20 sacks last year." },
+      { name: "Fred Warner", pos: "LB", num: 54,
+        quality:8.0, tenure:7.5, injury:6.0, conduct:8.5, popularity:7.0,
+        overview:"A perennial Pro Bowler and the unquestioned quarterback of the 49ers defense, Warner is one of the best linebackers in the NFL and a longtime franchise fixture.",
+        recent:"Missed 11 games in 2025 with a broken ankle but the injury type is low-recurrence; he's expected fully healthy and is a key leader in the new defensive scheme." },
+      { name: "Trent Williams", pos: "LT", num: 71,
+        quality:9.0, tenure:7.0, injury:7.5, conduct:9.0, popularity:6.5,
+        overview:"The most decorated offensive tackle in NFL history (12× Pro Bowl) and still elite at 37, Williams is a franchise icon who just signed a $50M extension — a 'football knowledge' pick for fans who appreciate the trenches.",
+        recent:"Signed a $50M extension just before the draft, resolving his contract standoff and confirming he's staying in San Francisco for the foreseeable future." },
+      { name: "Mike Evans", pos: "WR", num: 13,
+        quality:7.5, tenure:6.5, injury:5.5, conduct:7.5, popularity:7.5,
+        overview:"A six-time Pro Bowler with 11 straight 1,000-yard seasons to start his career, Evans brings a proven big-play presence to a 49ers WR room that desperately needed one after Aiyuk's departure.",
+        recent:"Signed a 3-year deal after his injury-shortened 2025 with Tampa Bay (8 games, hamstring); Kyle Shanahan has been effusive about his fit in the offense." },
+      { name: "Kyle Juszczyk", pos: "FB", num: 44,
+        quality:7.0, tenure:7.5, injury:8.5, conduct:9.0, popularity:7.0,
+        overview:"The most decorated fullback in NFL history (8× Pro Bowl) and a cornerstone of Shanahan's scheme for 9 years, Juszczyk is the ultimate cult-hero jersey — beloved locally and nationally.",
+        recent:"No notable updates this offseason; expected to anchor the 49ers' run game as he has every year since 2017." },
+      { name: "Ricky Pearsall", pos: "WR", num: 14,
+        quality:6.5, tenure:8.5, injury:4.5, conduct:8.0, popularity:6.0,
+        overview:"The 49ers' 2024 first-round pick has flashed genuine star potential in limited action, but two injury-shortened seasons have made it difficult to assess whether he can fulfill the promise that made him a top-31 pick.",
+        recent:"Expected to be fully healthy heading into 2026 training camp; with Aiyuk gone, he enters as a key piece of a rebuilt receiver room alongside Mike Evans and Christian Kirk." },
+      { name: "Dre Greenlaw", pos: "LB", num: 57,
+        quality:6.5, tenure:5.5, injury:5.5, conduct:8.5, popularity:5.5,
+        overview:"A fan favorite who was the 49ers' most-wanted free agent last offseason, 'Big Play Dre' has returned on a one-year deal to reunite with Fred Warner in the middle of the defense.",
+        recent:"Signed a 1-year/$7.5M deal in March after the Broncos released him; expressed that his departure created a tunnel vision to return, calling the 49ers a 'family.'" },
+      { name: "Osa Odighizuwa", pos: "DT", num: 92,
+        quality:7.0, tenure:7.5, injury:7.0, conduct:9.0, popularity:4.5,
+        overview:"Acquired for a third-round pick to anchor the 49ers' league-worst interior pass rush, Odighizuwa is a proven starter who led all defensive tackles in quarterback hits in 2025.",
+        recent:"Shanahan called him 'a stud' at OTAs; Odighizuwa has emerged as a leader on a young defensive line entering his first season in San Francisco." },
+      { name: "Mac Jones", pos: "QB", num: 10,
+        quality:6.5, tenure:4.5, injury:6.5, conduct:7.5, popularity:5.5,
+        overview:"A former top-15 pick who went 5-3 as a starter filling in for an injured Purdy in 2025, Jones earned genuine respect as a capable backup — a situational and niche jersey choice for fans who appreciated his steady performance.",
+        recent:"The 49ers have resisted trading him despite interest from multiple teams, calling him an important part of the roster; remains firmly the QB2 with Purdy healthy." },
+      { name: "Mykel Williams", pos: "EDGE", num: 98,
+        quality:5.5, tenure:9.0, injury:3.0, conduct:8.5, popularity:4.0,
+        overview:"The #11 overall pick in 2025 is a long-term cornerstone of the 49ers' defensive line — a buy-in-early pick for fans who believe in his elite athletic tools and upside opposite Nick Bosa.",
+        recent:"Tore his ACL and lateral meniscus in Week 9 of his rookie year; was not yet running at minicamp in May but has said he expects to be 100% for the start of training camp." },
+    ]
+  }
+};
+
+// ── Categories ────────────────────────────────────────────────────────────────
+const CATS = [
+  { key:'quality',    label:'Performance',    color:'var(--cat-performance)' },
+  { key:'tenure',     label:'Tenure',         color:'var(--cat-tenure)' },
+  { key:'injury',     label:'Durability',     color:'var(--cat-durability)' },
+  { key:'conduct',    label:'Citizenship',    color:'var(--cat-citizenship)' },
+  { key:'popularity', label:'Popularity',     color:'var(--cat-popularity)' },
+  { key:'wildcard',   label:'Wild card',      color:'var(--cat-wildcard)', isWildcard:true },
+];
+
+// ── State ─────────────────────────────────────────────────────────────────────
+let currentTeam = 'giants';
+let weights = { quality:3, tenure:3, injury:3, conduct:3, popularity:3, wildcard:3 };
+let perPlayer = {}; // { name: { wc: 0, wcOn: false, injOff: false } }
+
+function initPlayer(p) {
+  if (!perPlayer[p.name]) perPlayer[p.name] = { wc:0, wcOn:false, injOff:false };
+}
+
+function computeScore(p) {
+  let total=0, ws=0;
+  CATS.forEach(cat => {
+    if (cat.isWildcard && !perPlayer[p.name]?.wcOn) return;
+    if (cat.key==='injury' && perPlayer[p.name]?.injOff) return;
+    const val = cat.isWildcard ? (5 + (perPlayer[p.name]?.wc||0)) : p[cat.key];
+    total += val * weights[cat.key];
+    ws += weights[cat.key];
+  });
+  return ws>0 ? Math.max(0, Math.min(10, total/ws)) : 0;
+}
+
+// ── Jersey SVG ────────────────────────────────────────────────────────────────
+function jerseyHTML(num, name, c1, c2, textColor) {
+  const last = name.split(' ').pop().toUpperCase();
+  return `<svg viewBox="0 0 120 130" width="100%" height="100%" aria-hidden="true">
+    <path d="M30 10 L45 5 L60 15 L75 5 L90 10 L110 30 L95 45 L88 38 L88 120 L32 120 L32 38 L25 45 L10 30 Z" fill="${c1}" stroke="${c2}" stroke-width="3"/>
+    <path d="M45 5 L60 15 L75 5 L70 20 L60 25 L50 20 Z" fill="${c2}"/>
+    <rect x="32" y="38" width="56" height="5" fill="${c2}"/>
+    <text x="60" y="80" text-anchor="middle" font-family="'Barlow Condensed',sans-serif" font-weight="700" font-size="38" fill="${textColor}">${num}</text>
+    <text x="60" y="102" text-anchor="middle" font-family="'Inter',sans-serif" font-weight="600" font-size="10" fill="${textColor}" letter-spacing="1">${last}</text>
+  </svg>`;
+}
+
+// ── Build sliders ─────────────────────────────────────────────────────────────
+function buildSliders() {
+  const el = document.getElementById('sliders');
+  el.innerHTML = '';
+  CATS.forEach(cat => {
+    const row = document.createElement('div');
+    row.className = 'slider-row';
+    row.innerHTML = `
+      <span class="slider-label"><span class="cat-dot" style="background:${cat.color}"></span>${cat.label}</span>
+      <input type="range" min="0" max="5" step="1" value="${weights[cat.key]}" data-key="${cat.key}">
+      <span class="slider-val" data-out="${cat.key}">${weights[cat.key]}</span>
+    `;
+    el.appendChild(row);
+  });
+
+  el.querySelectorAll('input[type=range]').forEach(inp => {
+    inp.addEventListener('input', e => {
+      weights[e.target.dataset.key] = parseInt(e.target.value);
+      document.querySelector(`[data-out="${e.target.dataset.key}"]`).textContent = e.target.value;
+      updateAllScores();
+    });
+    inp.addEventListener('change', () => resortCards());
+  });
+}
+
+// ── Build cards ───────────────────────────────────────────────────────────────
+function buildCards() {
+  const team = TEAMS[currentTeam];
+  team.players.forEach(p => initPlayer(p));
+
+  const scored = team.players.map(p => ({...p, score: computeScore(p)}))
+    .sort((a,b) => b.score - a.score);
+
+  const el = document.getElementById('cards');
+  el.innerHTML = '';
+  scored.forEach((p,i) => el.appendChild(makeCard(p, i, team)));
+}
+
+function makeCard(p, i, team) {
+  const card = document.createElement('div');
+  card.className = 'player-card' + (i===0 ? ' top-match' : '');
+  card.setAttribute('data-card', p.name);
+
+  const st = perPlayer[p.name];
+  const wcDisabled = !st.wcOn;
+  const wcDisplay = wcDisabled ? '—' : (5+st.wc).toFixed(1);
+
+  const barsHTML = CATS.filter(c=>!c.isWildcard).map(cat => {
+    const excluded = cat.key==='injury' && st.injOff;
+    const val = p[cat.key];
+    return `<div class="bar-row">
+      <span class="bar-label" style="${excluded?'color:var(--text-tertiary);text-decoration:line-through':''}" data-inj-label="${cat.key==='injury'?p.name:''}">${cat.label}</span>
+      <div class="bar-track"><div class="bar-fill" style="width:${excluded?0:val*10}%;background:${excluded?'var(--light)':cat.color}" data-inj-fill="${cat.key==='injury'?p.name:''}"></div></div>
+      <span class="bar-val" style="${excluded?'color:var(--text-tertiary)':''}" data-inj-val="${cat.key==='injury'?p.name:''}">${excluded?'—':val.toFixed(1)}</span>
+    </div>`;
+  }).join('');
+
+  card.innerHTML = `
+    <div class="card-header">
+      <div class="jersey-wrap">${jerseyHTML(p.num, p.name, team.color1, team.color2, team.accent)}</div>
+      <div>
+        <div class="player-name">${p.name}${p.userSuggested?'<span class="user-suggested"> fan pick</span>':''}</div>
+        <div class="player-meta">#${p.num} &middot; ${p.pos}</div>
+      </div>
+      <div class="score-block">
+        <div class="score-rank ${i===0?'score-top-match':''}" data-rank>${i===0?'Top match':`#${i+1}`}</div>
+        <div class="score-number" data-score>${computeScore(p).toFixed(1)}</div>
+      </div>
+    </div>
+    <div class="bars">${barsHTML}</div>
+    <div class="card-controls">
+      <div class="wc-row">
+        <input type="checkbox" data-wc-chk="${p.name}" ${st.wcOn?'checked':''}>
+        <span class="wc-label">Wild card</span>
+        <input type="range" min="-5" max="5" step="1" value="${st.wc}" data-wc-slider="${p.name}" ${wcDisabled?'disabled':''} style="opacity:${wcDisabled?0.35:1}">
+        <span class="wc-val" data-wc-val="${p.name}">${wcDisplay}</span>
+      </div>
+      <label class="durability-toggle">
+        <input type="checkbox" data-inj-chk="${p.name}" ${st.injOff?'checked':''}>
+        Don't penalize for durability
+      </label>
+    </div>
+    <hr class="card-divider">
+    <p class="note-overview">${p.overview}</p>
+    <p class="note-recent">${p.recent}</p>
+  `;
+
+  // Wild card checkbox — no resort
+  card.querySelector(`[data-wc-chk="${p.name}"]`).addEventListener('change', e => {
+    perPlayer[p.name].wcOn = e.target.checked;
+    const slider = card.querySelector(`[data-wc-slider="${p.name}"]`);
+    const valEl = card.querySelector(`[data-wc-val="${p.name}"]`);
+    slider.disabled = !e.target.checked;
+    slider.style.opacity = e.target.checked ? 1 : 0.35;
+    if (!e.target.checked) { perPlayer[p.name].wc=0; slider.value=0; valEl.textContent='—'; }
+    else valEl.textContent = (5+perPlayer[p.name].wc).toFixed(1);
+    updateScoreInPlace(p.name);
+  });
+
+  // Wild card slider — live score, resort on release
+  card.querySelector(`[data-wc-slider="${p.name}"]`).addEventListener('input', e => {
+    perPlayer[p.name].wc = parseInt(e.target.value);
+    card.querySelector(`[data-wc-val="${p.name}"]`).textContent = (5+perPlayer[p.name].wc).toFixed(1);
+    updateAllScores();
+  });
+  card.querySelector(`[data-wc-slider="${p.name}"]`).addEventListener('change', () => resortCards());
+
+  // Injury checkbox — no resort
+  card.querySelector(`[data-inj-chk="${p.name}"]`).addEventListener('change', e => {
+    perPlayer[p.name].injOff = e.target.checked;
+    updateInjuryVisual(p.name, e.target.checked, p.injury);
+    updateScoreInPlace(p.name);
+  });
+
+  return card;
+}
+
+function updateInjuryVisual(name, excluded, val) {
+  const lbl = document.querySelector(`[data-inj-label="${name}"]`);
+  const fill = document.querySelector(`[data-inj-fill="${name}"]`);
+  const valEl = document.querySelector(`[data-inj-val="${name}"]`);
+  if (!lbl) return;
+  lbl.style.color = excluded ? 'var(--text-tertiary)' : '';
+  lbl.style.textDecoration = excluded ? 'line-through' : '';
+  fill.style.width = excluded ? '0%' : `${val*10}%`;
+  fill.style.background = excluded ? 'var(--light)' : 'var(--cat-durability)';
+  valEl.style.color = excluded ? 'var(--text-tertiary)' : '';
+  valEl.textContent = excluded ? '—' : val.toFixed(1);
+}
+
+function updateScoreInPlace(name) {
+  const team = TEAMS[currentTeam];
+  const p = team.players.find(pl => pl.name===name);
+  const card = document.querySelector(`[data-card="${name}"]`);
+  if (card && p) card.querySelector('[data-score]').textContent = computeScore(p).toFixed(1);
+}
+
+function updateAllScores() {
+  TEAMS[currentTeam].players.forEach(p => updateScoreInPlace(p.name));
+}
+
+function resortCards() {
+  const team = TEAMS[currentTeam];
+  const cardsEl = document.getElementById('cards');
+  const sorted = team.players.map(p => ({name:p.name, score:computeScore(p)}))
+    .sort((a,b) => b.score - a.score);
+  sorted.forEach((p,i) => {
+    const card = document.querySelector(`[data-card="${p.name}"]`);
+    if (card) {
+      cardsEl.appendChild(card);
+      card.querySelector('[data-rank]').textContent = i===0 ? 'Top match' : `#${i+1}`;
+      card.className = 'player-card' + (i===0?' top-match':'');
+    }
+  });
+}
+
+// ── Team switcher ─────────────────────────────────────────────────────────────
+document.querySelectorAll('.team-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    currentTeam = btn.dataset.team;
+    document.querySelectorAll('.team-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    buildCards();
+  });
+});
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+buildSliders();
+buildCards();
+</script>
+</body>
+</html>
